@@ -60,7 +60,7 @@ def post_facebook_message(fbid,message_text):
 	post_message_url = 'https://graph.facebook.com/v2.6/me/messages?access_token=%s'%PAGE_ACCESS_TOKEN
 
 	quiz = quizGen()
-	 response_msg_image = {
+	response_msg_image = {
 
             "recipient":{
                 "id":fbid
