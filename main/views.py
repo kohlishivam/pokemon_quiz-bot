@@ -24,42 +24,161 @@ pokemon_data = {"Bulbasaur":"http://img.pokemondb.net/artwork/bulbasaur.jpg","Iv
 
 
 
+def quizGen():
+    pokemon_arr = []
+    for key, value in pokemon_data.iteritems():
+        pokemon_arr.append([key,value])
+    random.shuffle(pokemon_arr)
+
+    answer = pokemon_arr[0]
+
+    options = [i[0] for i in pokemon_arr[:4]]
+    random.shuffle(options)
+
+    return dict(answer=answer,options=options)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+def logg(message,symbol='-'):
+    print '%s\n %s \n%s'%(symbol*10,message,symbol*10)
 
 
 def post_facebook_message(fbid,message_text):
 	post_message_url = 'https://graph.facebook.com/v2.6/me/messages?access_token=%s'%PAGE_ACCESS_TOKEN
-	response_msg = json.dumps({"recipient":{"id":fbid}, "message":{"text":message_text}})
-	status = requests.post(post_message_url, headers={"Content-Type": "application/json"},data=response_msg)
-	print status.json()
+
+	quiz = quizGen()
+	 response_msg_image = {
+
+            "recipient":{
+                "id":fbid
+              },
+              "message":{
+                "attachment":{
+                  "type":"image",
+                  "payload":{
+                    "url": quiz['answer'][1]
+                  }
+                }
+              }
+
+          } 
+          
+    response_msg_quickreply = {
+
+            "recipient":{
+                "id":fbid
+              },
+              "message":{
+                "text":"Which Pokemon is this ?",
+                "quick_replies":[
+                  {
+                    "content_type":"text",
+                    "title":quiz['options'][0],
+                    "payload":"%s:%s"%(quiz['answer'][0],quiz['options'][0])
+                  },
+                  {
+                    "content_type":"text",
+                    "title":quiz['options'][1],
+                    "payload":"%s:%s"%(quiz['answer'][0],quiz['options'][1])
+                  },
+                  {
+                    "content_type":"text",
+                    "title":quiz['options'][2],
+                    "payload":"%s:%s"%(quiz['answer'][0],quiz['options'][2])
+                  },
+                  {
+                    "content_type":"text",
+                    "title":quiz['options'][3],
+                    "payload":"%s:%s"%(quiz['answer'][0],quiz['options'][3])
+                  }
+                ]
+              }
+
+    }
+
+    response_msg_quickreply = json.dumps(response_msg_quickreply)
+    response_msg_image = json.dumps(response_msg_image)
+
+    requests.post(post_message_url, headers={"Content-Type": "application/json"},data=response_msg_quickreply)
+
+    requests.post(post_message_url, headers={"Content-Type": "application/json"},data=response_msg_image)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 class MyChatBotView(generic.View):
-	def get(self, request, *args, **kwargs):
-		if self.request.GET['hub.verify_token'] == VERIFY_TOKEN:
-			return HttpResponse(self.request.GET['hub.challenge'])
-		else:
-			return HttpResponse('Oops invalid token')
+	def get (self, request, *args, **kwargs):
+        if self.request.GET['hub.verify_token'] == VERIFY_TOKEN:
+            return HttpResponse(self.request.GET['hub.challenge'])
+        else:
+            return HttpResponse('Oops invalid token')
 
-	@method_decorator(csrf_exempt)
-	def dispatch(self, request, *args, **kwargs):
-		return generic.View.dispatch(self, request, *args, **kwargs)
+    @method_decorator(csrf_exempt)
+    def dispatch(self, request, *args, **kwargs):
+        return generic.View.dispatch(self, request, *args, **kwargs)
 
-	def post(self, request, *args, **kwargs):
-		incoming_message= json.loads(self.request.body.decode('utf-8'))
-		print incoming_message
+    def post(self, request, *args, **kwargs):
+        incoming_message= json.loads(self.request.body.decode('utf-8'))
+        
+        logg(incoming_message)
 
-		for entry in incoming_message['entry']:
-			for message in entry['messaging']:
-				print message
-				try:
-					sender_id = message['sender']['id']
-					message_text = message['message']['text']
-					post_facebook_message(sender_id,message_text) 
-				except Exception as e:
-					print e
-					pass
+        for entry in incoming_message['entry']:
+            for message in entry['messaging']:
+                try:
+                    if 'quick_reply' in message['message']:
+                        handle_quickreply(message['sender']['id'],
+                            message['message']['quick_reply']['payload'])
+                        return HttpResponse()
+                    else:
+                        pass
+                except Exception as e:
+                    logg(e,symbol='-325-')
+                
+                try:
+                    sender_id = message['sender']['id']
+                    message_text = message['message']['text']
+                    post_facebook_message(sender_id,message_text) 
+                except Exception as e:
+                    logg(e,symbol='-332-')
 
-		return HttpResponse()  
+        return HttpResponse()  
 
 def index(request):
 	return HttpResponse('Hello world')
