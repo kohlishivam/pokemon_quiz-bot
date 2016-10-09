@@ -22,8 +22,6 @@ pokemon_data = {"Bulbasaur":"http://img.pokemondb.net/artwork/bulbasaur.jpg","Iv
 
 
 
-
-
 def quizGen():
     pokemon_arr = []
     for key, value in pokemon_data.iteritems():
@@ -37,23 +35,30 @@ def quizGen():
 
     return dict(answer=answer,options=options)
 
+def set_greeting_text():
+    post_message_url = "https://graph.facebook.com/v2.6/me/thread_settings?access_token=%s"%(PAGE_ACCESS_TOKEN)
+    
+    request_msg = {
+        "setting_type":"greeting",
+          "greeting":{
+            "text":"Pokemon quiz bot"
+          }
+    }
+    response_msg = json.dumps(request_msg)
+
+    status = requests.post(post_message_url, 
+                headers={"Content-Type": "application/json"},
+                data=response_msg)
+
+    logg(status.text,symbol='--GR--')
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-def logg(message,symbol='-'):
-    print '%s\n %s \n%s'%(symbol*10,message,symbol*10)
+def index(request):
+    #testing the post facebook function
+    post_facebook_message('asd','asdasd')
+    search_string = request.GET.get('text') or 'foo'
+    output_text = search_string
+    return HttpResponse(output_text, content_type='application/json')
 
 
 def post_facebook_message(fbid,message_text):
@@ -118,6 +123,16 @@ def post_facebook_message(fbid,message_text):
     requests.post(post_message_url, headers={"Content-Type": "application/json"},data=response_msg_image)
 
 
+def logg(message,symbol='-'):
+    print '%s\n %s \n%s'%(symbol*10,message,symbol*10)
+
+def handle_postback(fbid,payload):
+    post_message_url = 'https://graph.facebook.com/v2.6/me/messages?access_token=%s'%PAGE_ACCESS_TOKEN
+
+    if payload == 'PAYLOAD_NEXT':
+        post_facebook_message(fbid,'.')
+
+    return
 
 def handle_quickreply(fbid,payload):
     if not payload:
@@ -167,36 +182,6 @@ def handle_quickreply(fbid,payload):
         data=response_msg_image)
     return
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-def index(request):
-    #testing the post facebook function
-    post_facebook_message('asd','asdasd')
-    search_string = request.GET.get('text') or 'foo'
-    output_text = search_string
-    return HttpResponse(output_text, content_type='application/json')
-
-
 class MyChatBotView(generic.View):
     def get (self, request, *args, **kwargs):
         if self.request.GET['hub.verify_token'] == VERIFY_TOKEN:
@@ -233,4 +218,3 @@ class MyChatBotView(generic.View):
                     logg(e,symbol='-332-')
 
         return HttpResponse()  
-
