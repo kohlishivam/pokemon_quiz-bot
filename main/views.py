@@ -75,7 +75,7 @@ def post_facebook_message(fbid,message_text):
               }
 
           } 
-          
+
     response_msg_quickreply = {
 
             "recipient":{
@@ -141,6 +141,12 @@ def post_facebook_message(fbid,message_text):
 
 
 
+def index(request):
+    #testing the post facebook function
+    post_facebook_message('asd','asdasd')
+    search_string = request.GET.get('text') or 'foo'
+    output_text = search_string
+    return HttpResponse(output_text, content_type='application/json')
 
 
 class MyChatBotView(generic.View):
@@ -180,5 +186,3 @@ class MyChatBotView(generic.View):
 
         return HttpResponse()  
 
-def index(request):
-	return HttpResponse('Hello world')
