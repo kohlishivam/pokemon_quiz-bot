@@ -119,6 +119,54 @@ def post_facebook_message(fbid,message_text):
 
 
 
+def handle_quickreply(fbid,payload):
+    if not payload:
+        return
+
+    post_message_url = 'https://graph.facebook.com/v2.6/me/messages?access_token=%s'%PAGE_ACCESS_TOKEN
+    logg(payload,symbol='-QR-')
+
+    if payload.split(':')[0] == payload.split(':')[-1]:
+         logg("Correct Answer",symbol='-YES-')
+         output_text = 'Correct Answer'
+
+    else:
+        logg("Wrong Answer",symbol='-NO-')
+        output_text = 'Wrong answer'
+        
+    response_msg = json.dumps({"recipient":{"id":fbid}, 
+        "message":{"text":output_text}})
+ 
+
+    response_msg_image = {
+                            "recipient":{
+                              "id":fbid
+                            },
+                            "message":{
+                              "attachment":{
+                                "type":"template",
+                                "payload":{
+                                  "template_type":"button",
+                                  "text":output_text,
+                                  "buttons":[
+                                    {
+                                      "type":"postback",
+                                      "title":"Next Question",
+                                      "payload":"PAYLOAD_NEXT"
+                                    }
+                                  ]
+                                }
+                              }
+                            }
+                          } 
+
+    response_msg_image = json.dumps(response_msg_image)
+    
+    status = requests.post(post_message_url, 
+        headers={"Content-Type": "application/json"},
+        data=response_msg_image)
+    return
+
 
 
 
