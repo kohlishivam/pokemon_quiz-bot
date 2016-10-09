@@ -57,10 +57,11 @@ def logg(message,symbol='-'):
 
 
 def post_facebook_message(fbid,message_text):
-	post_message_url = 'https://graph.facebook.com/v2.6/me/messages?access_token=%s'%PAGE_ACCESS_TOKEN
+    post_message_url = 'https://graph.facebook.com/v2.6/me/messages?access_token=%s'%PAGE_ACCESS_TOKEN
 
-	quiz = quizGen()
-	response_msg_image = {
+    quiz = quizGen()
+
+    response_msg_image = {
 
             "recipient":{
                 "id":fbid
@@ -115,7 +116,6 @@ def post_facebook_message(fbid,message_text):
     requests.post(post_message_url, headers={"Content-Type": "application/json"},data=response_msg_quickreply)
 
     requests.post(post_message_url, headers={"Content-Type": "application/json"},data=response_msg_image)
-
 
 
 
